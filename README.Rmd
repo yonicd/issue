@@ -1,0 +1,37 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "README-"
+)
+```
+
+# ghstatus
+
+Create a simple human readable table for readme that displays status of issues
+
+## Installation
+
+You can install ghstatus from github with:
+
+```{r gh-installation, eval = FALSE}
+# install.packages("devtools")
+remotes::install_github("yonicd/ghstatus")
+```
+
+```{r}
+library(ghstatus)
+```
+
+```{r example}
+ghstatus::get_issues(repo = 'r-lib/pkgdown',
+           last = 20)%>%
+  ghstatus::create_table()%>%
+  knitr::kable()
+```

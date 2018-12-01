@@ -1,0 +1,16 @@
+Package: ghstatus
+Title: GitHub Issue Status
+Version: 0.0.0.9000
+Authors@R: person(given  = "Jonathan",
+                 family  = "Sidi",
+                 email   = "yonicd@gmail.com",
+                 role    = c("aut", "cre"),
+                 comment = c(ORCID = "0000-0002-4222-1819"))
+Description: Create a table to display issue status in repo readme.
+Depends: R (>= 3.3.0)
+License: MIT + file LICENSE
+Imports: purrr,httr,tibble
+Suggests: knitr
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.1.0
