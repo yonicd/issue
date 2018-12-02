@@ -13,33 +13,22 @@
 #' @export 
 create_table <- function(obj){
 
-  obj$state   <- sapply(obj$value,FUN=function(y) y$state,simplify = TRUE)
+  obj$state        <- sapply(obj$value,FUN=function(y) y$state,simplify = TRUE)
+  obj$pull_request <- sapply(obj$value,function(y) 'pull_request'%in%names(y))
+  obj$body         <- sapply(obj$value,FUN=function(y) y$body,simplify = TRUE)
+  obj$created      <- sapply(obj$value,FUN=function(y) y$created_at,simplify = TRUE)
+  obj$updated      <- sapply(obj$value,FUN=function(y) y$updated_at,simplify = TRUE)
+  obj$closed       <- sapply(obj$value,FUN=function(y) ifelse(is.null(y$closed_at),'',y$closed_at),simplify = TRUE)
   
-  obj$created <- sapply(obj$value,FUN=function(y) y$created_at,simplify = TRUE)
-  obj$updated <- sapply(obj$value,FUN=function(y) y$updated_at,simplify = TRUE)
-  obj$closed  <- sapply(obj$value,FUN=function(y) ifelse(is.null(y$closed_at),'',y$closed_at),simplify = TRUE)
+  obj$created      <- as.POSIXct(strptime(obj$created,'%Y-%m-%dT%H:%M:%SZ'))
+  obj$updated      <- as.POSIXct(strptime(obj$updated,'%Y-%m-%dT%H:%M:%SZ'))
+  obj$closed       <- as.POSIXct(strptime(obj$closed,'%Y-%m-%dT%H:%M:%SZ'))
   
-  obj$created <- as.POSIXct(strptime(obj$created,'%Y-%m-%dT%H:%M:%SZ'))
-  obj$updated <- as.POSIXct(strptime(obj$updated,'%Y-%m-%dT%H:%M:%SZ'))
-  obj$closed  <- as.POSIXct(strptime(obj$closed,'%Y-%m-%dT%H:%M:%SZ'))
-  
-  obj$title   <- sapply(obj$value,FUN=function(y) y$title,simplify = TRUE)
+  obj$title        <- sapply(obj$value,FUN=function(y) y$title,simplify = TRUE)
 
-  # 'api/v3/repos/'
-  
-  obj$url    <- sapply(obj$value,FUN=function(y) y$url,simplify = TRUE)
-  
-  gsub_pattern <- 'api\\.|repos/'
-  
-  if(grepl('^https://ghe',obj$url[1])){
-    
-    gsub_pattern <- 'api/v3/repos/'
-    
-  }
-  
-  obj$url <- gsub(pattern = gsub_pattern,replacement = '',x = obj$url)
-  
-  obj$title  <- link(obj$title,obj$url)
+  obj$url          <- sapply(obj$value,FUN=function(y) y$html_url,simplify = TRUE)
+
+  obj$title  <- link(obj$title,obj$url,obj$body)
   
   obj$labels <- sapply(obj$value,FUN=function(y) {
         
@@ -75,9 +64,9 @@ create_table <- function(obj){
   obj$value <- NULL
   obj$url <- NULL
   
-  obj <- obj[order(obj$state,obj$updated,decreasing = TRUE),]
+  obj <- obj[order(obj$state,-obj$pull_request,obj$updated,decreasing = TRUE),]
   
-  obj <- obj[,c('issue','title','state','labels','opened_by','comments','comments_users','assigned_to','created','updated','closed')]
+  obj <- obj[,c('issue','pull_request','title','state','labels','opened_by','comments','comments_users','assigned_to','created','updated','closed')]
   
   obj
 
@@ -85,7 +74,9 @@ create_table <- function(obj){
 
 fetch_comment_users <- function(obj){
   
-  sapply(obj$value,function(y) issue:::link(y$user$login,y$user$html_url))%>%
-    paste0(collapse = ', ')
+  sapply(obj$value,function(y){
+    link(y$user$login,y$html_url,y$body)
+  })%>%
+    paste0(collapse = ', ') 
   
 }
