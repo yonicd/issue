@@ -1,6 +1,6 @@
 Package: issue
 Title: GitHub Issue Status
-Version: 0.0.0.9000
+Version: 0.0.0.9001
 Authors@R: person(given  = "Jonathan",
                  family  = "Sidi",
                  email   = "yonicd@gmail.com",
@@ -9,7 +9,7 @@ Authors@R: person(given  = "Jonathan",
 Description: Create a table to display issue status in repo readme.
 Depends: R (>= 3.3.0)
 License: MIT + file LICENSE
-Imports: purrr,httr,tibble
+Imports: httr,tibble
 Suggests: knitr
 Encoding: UTF-8
 LazyData: true

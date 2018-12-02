@@ -9,28 +9,25 @@
 #'  #EXAMPLE1
 #'  }
 #' }
-#' @seealso 
-#'  \code{\link[purrr]{map}}
 #' @rdname create_table
 #' @export 
-#' @importFrom purrr map_chr
 create_table <- function(obj){
 
-  obj$state   <- purrr::map_chr(obj$value,.f=function(y) y$state)
+  obj$state   <- sapply(obj$value,FUN=function(y) y$state,simplify = TRUE)
   
-  obj$created <- purrr::map_chr(obj$value,.f=function(y) y$created_at)
-  obj$updated <- purrr::map_chr(obj$value,.f=function(y) y$updated_at)
-  obj$closed  <- purrr::map_chr(obj$value,.f=function(y) ifelse(is.null(y$closed_at),'',y$closed_at))
+  obj$created <- sapply(obj$value,FUN=function(y) y$created_at,simplify = TRUE)
+  obj$updated <- sapply(obj$value,FUN=function(y) y$updated_at,simplify = TRUE)
+  obj$closed  <- sapply(obj$value,FUN=function(y) ifelse(is.null(y$closed_at),'',y$closed_at),simplify = TRUE)
   
   obj$created <- as.POSIXct(strptime(obj$created,'%Y-%m-%dT%H:%M:%SZ'))
   obj$updated <- as.POSIXct(strptime(obj$updated,'%Y-%m-%dT%H:%M:%SZ'))
   obj$closed  <- as.POSIXct(strptime(obj$closed,'%Y-%m-%dT%H:%M:%SZ'))
   
-  obj$title   <- purrr::map_chr(obj$value,.f=function(y) y$title)
+  obj$title   <- sapply(obj$value,FUN=function(y) y$title,simplify = TRUE)
 
   # 'api/v3/repos/'
   
-  obj$url    <- purrr::map_chr(obj$value,.f=function(y) y$url)
+  obj$url    <- sapply(obj$value,FUN=function(y) y$url,simplify = TRUE)
   
   gsub_pattern <- 'api\\.|repos/'
   
@@ -44,32 +41,35 @@ create_table <- function(obj){
   
   obj$title  <- sprintf('[%s](%s)',obj$title,obj$url)
   
-  obj$labels <- purrr::map_chr(obj$value,.f=function(y) {
+  obj$labels <- sapply(obj$value,FUN=function(y) {
         
-        ret <- purrr::map_chr(y$labels,.f=function(yy){
-          yy$name
-        })
+        ret <- sapply(y$labels,FUN=function(yy) yy$name,simplify = TRUE)
         
         if(length(ret)==0)
           ret <- ''
         
         paste0(ret,collapse = ',')
-      })
+      },simplify = TRUE)
   
-  obj$comments  <- purrr::map_chr(obj$value,.f=function(y) y$comments)
-  obj$opened_by <- purrr::map_chr(obj$value,.f=function(y) y$user$login)
+  obj$comments  <- sapply(obj$value,FUN=function(y) y$comments,simplify = TRUE)
+  obj$opened_by <- sapply(obj$value,FUN=function(y) sprintf('[%s](%s)',y$user$login,y$user$html_url),simplify = TRUE)
       
 
-  obj$assigned_to <- purrr::map_chr(
+  obj$assigned_to <- sapply(
     obj$value,
-    .f=function(y) 
-      paste0(purrr::map_chr(y$assignees,.f=function(yy) yy$login),collapse = ',')
+    FUN=function(y) 
+      paste0(sapply(y$assignees,FUN=function(yy) yy$login),collapse = ','),
+    simplify = TRUE
     )
   
   obj$value <- NULL
   obj$url <- NULL
   
-  obj[order(obj$state,obj$updated,decreasing = TRUE),]
+  obj <- obj[order(obj$state,obj$updated,decreasing = TRUE),]
+  
+  obj <- obj[,c(1,6,2,7,8,9,10,3,4,5)]
+  
+  obj
 
 }
 

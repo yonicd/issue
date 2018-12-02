@@ -2,10 +2,10 @@
 
 export("%>%")
 export(create_table)
+export(get_issue_comments)
 export(get_issues)
 importFrom(httr,GET)
 importFrom(httr,add_headers)
 importFrom(httr,content)
 importFrom(purrr,"%>%")
-importFrom(purrr,map_chr)
 importFrom(tibble,enframe)
