@@ -1,28 +1,28 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# ghstatus
+# issue
 
 Create a simple human readable table for readme that displays status of
-issues
+GitHub repositoy issues
 
 ## Installation
 
-You can install ghstatus from github with:
+You can install issue from github with:
 
 ``` r
 # install.packages("devtools")
-remotes::install_github("yonicd/ghstatus")
+remotes::install_github("yonicd/issue")
 ```
 
 ``` r
-library(ghstatus)
+library(issue)
 ```
 
 ``` r
-ghstatus::get_issues(repo = 'r-lib/pkgdown',
+issue::get_issues(repo = 'r-lib/pkgdown',
            last = 20)%>%
-  ghstatus::create_table()%>%
+  issue::create_table()%>%
   knitr::kable()
 ```
 

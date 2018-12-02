@@ -1,4 +1,4 @@
-Package: ghstatus
+Package: issue
 Title: GitHub Issue Status
 Version: 0.0.0.9000
 Authors@R: person(given  = "Jonathan",
