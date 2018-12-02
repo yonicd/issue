@@ -53,7 +53,15 @@ create_table <- function(obj){
   
   obj$comments  <- sapply(obj$value,FUN=function(y) y$comments,simplify = TRUE)
   
-  obj$comments_users <- sapply(obj$issue,function(y) get_issue_comments(repo = attr(obj,'repo'),number=y)%>%fetch_comment_users(),simplify = TRUE)
+  obj$comments_users <- sapply(obj$issue,function(y){
+    get_issue_comments(
+      number   = y,
+      repo     = attr(obj,'repo'),
+      endpoint = attr(obj,'endpoint'),
+      PAT      = eval(parse(text = attr(obj,'pat')))
+      )%>%
+      fetch_comment_users()
+  },simplify = TRUE)
   
   obj$opened_by <- sapply(obj$value,FUN=function(y) link(y$user$login,y$user$html_url),simplify = TRUE)
       

@@ -29,10 +29,11 @@ get_issues <- function(repo, last = 100, endpoint = 'api.github.com', PAT = Sys.
     httr::content()%>%
     tibble::enframe(name = 'issue')
   
-  obj$issue   <- sapply(obj$value,FUN=function(y) y$number,simplify = TRUE)
+  obj$issue <- sapply(obj$value,FUN=function(y) y$number,simplify = TRUE)
   
   attr(obj,'repo') <- repo
   attr(obj,'endpoint') <- endpoint
+  attr(obj,'pat') <- deparse(substitute(PAT))
   
   obj
 }
