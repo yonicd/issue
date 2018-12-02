@@ -21,7 +21,7 @@ Create a simple human readable table for readme that displays status of GitHub r
 You can install issue from github with:
 
 ```{r gh-installation, eval = FALSE}
-# install.packages("devtools")
+# install.packages("remotes")
 remotes::install_github("yonicd/issue")
 ```
 

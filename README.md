@@ -11,7 +11,7 @@ GitHub repositoy issues
 You can install issue from github with:
 
 ``` r
-# install.packages("devtools")
+# install.packages("remotes")
 remotes::install_github("yonicd/issue")
 ```
 
