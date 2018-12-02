@@ -31,5 +31,8 @@ get_issues <- function(repo, last = 100, endpoint = 'api.github.com', PAT = Sys.
   
   obj$issue   <- sapply(obj$value,FUN=function(y) y$number,simplify = TRUE)
   
+  attr(obj,'repo') <- repo
+  attr(obj,'endpoint') <- endpoint
+  
   obj
 }

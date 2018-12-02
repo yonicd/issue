@@ -39,7 +39,7 @@ create_table <- function(obj){
   
   obj$url <- gsub(pattern = gsub_pattern,replacement = '',x = obj$url)
   
-  obj$title  <- sprintf('[%s](%s)',obj$title,obj$url)
+  obj$title  <- link(obj$title,obj$url)
   
   obj$labels <- sapply(obj$value,FUN=function(y) {
         
@@ -52,9 +52,11 @@ create_table <- function(obj){
       },simplify = TRUE)
   
   obj$comments  <- sapply(obj$value,FUN=function(y) y$comments,simplify = TRUE)
-  obj$opened_by <- sapply(obj$value,FUN=function(y) sprintf('[%s](%s)',y$user$login,y$user$html_url),simplify = TRUE)
+  
+  obj$comments_users <- sapply(obj$issue,function(y) get_issue_comments(repo = attr(obj,'repo'),number=y)%>%fetch_comment_users(),simplify = TRUE)
+  
+  obj$opened_by <- sapply(obj$value,FUN=function(y) link(y$user$login,y$user$html_url),simplify = TRUE)
       
-
   obj$assigned_to <- sapply(
     obj$value,
     FUN=function(y) 
@@ -67,9 +69,15 @@ create_table <- function(obj){
   
   obj <- obj[order(obj$state,obj$updated,decreasing = TRUE),]
   
-  obj <- obj[,c(1,6,2,7,8,9,10,3,4,5)]
+  obj <- obj[,c('issue','title','state','labels','opened_by','comments','comments_users','assigned_to','created','updated','closed')]
   
   obj
 
 }
 
+fetch_comment_users <- function(obj){
+  
+  sapply(obj$value,function(y) issue:::link(y$user$login,y$user$html_url))%>%
+    paste0(collapse = ', ')
+  
+}
