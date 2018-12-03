@@ -10,39 +10,40 @@
 #'  }
 #' }
 #' @rdname create_table
+#' @importFrom purrr map_chr pmap_chr map2_lgl map_lgl
 #' @export 
 create_table <- function(obj){
 
-  obj$state        <- sapply(obj$value,FUN=function(y) y$state,simplify = TRUE)
-  obj$pull_request <- sapply(obj$value,function(y) 'pull_request'%in%names(y))
-  obj$body         <- sapply(obj$value,FUN=function(y) y$body,simplify = TRUE)
-  obj$created      <- sapply(obj$value,FUN=function(y) y$created_at,simplify = TRUE)
-  obj$updated      <- sapply(obj$value,FUN=function(y) y$updated_at,simplify = TRUE)
-  obj$closed       <- sapply(obj$value,FUN=function(y) ifelse(is.null(y$closed_at),'',y$closed_at),simplify = TRUE)
+  obj$state        <- purrr::map_chr(obj$value,.f=function(y) y$state)
+  obj$pull_request <- purrr::map_lgl(obj$value,function(y) 'pull_request'%in%names(y))
+  obj$body         <- purrr::map_chr(obj$value,.f=function(y) y$body)
+  obj$created      <- purrr::map_chr(obj$value,.f=function(y) y$created_at)
+  obj$updated      <- purrr::map_chr(obj$value,.f=function(y) y$updated_at)
+  obj$closed       <- purrr::map_chr(obj$value,.f=function(y) ifelse(is.null(y$closed_at),'',y$closed_at))
   
   obj$created      <- as.POSIXct(strptime(obj$created,'%Y-%m-%dT%H:%M:%SZ'))
   obj$updated      <- as.POSIXct(strptime(obj$updated,'%Y-%m-%dT%H:%M:%SZ'))
   obj$closed       <- as.POSIXct(strptime(obj$closed,'%Y-%m-%dT%H:%M:%SZ'))
   
-  obj$title        <- sapply(obj$value,FUN=function(y) y$title,simplify = TRUE)
+  obj$title        <- purrr::map_chr(obj$value,.f=function(y) y$title)
 
-  obj$url          <- sapply(obj$value,FUN=function(y) y$html_url,simplify = TRUE)
+  obj$url          <- purrr::map_chr(obj$value,.f=function(y) y$html_url)
 
   obj$title  <- link(obj$title,obj$url,obj$body)
   
-  obj$labels <- sapply(obj$value,FUN=function(y) {
+  obj$labels <- purrr::map_chr(obj$value,.f=function(y) {
         
-        ret <- sapply(y$labels,FUN=function(yy) yy$name,simplify = TRUE)
+        ret <- purrr::map_chr(y$labels,.f=function(yy) yy$name)
         
         if(length(ret)==0)
           ret <- ''
         
         paste0(ret,collapse = ',')
-      },simplify = TRUE)
+      })
   
-  obj$comments  <- sapply(obj$value,FUN=function(y) y$comments,simplify = TRUE)
+  obj$comments  <- purrr::map_chr(obj$value,.f=function(y) y$comments)
   
-  obj$comments_users <- sapply(obj$issue,function(y){
+  obj$comments_users <- purrr::map_chr(obj$issue,function(y){
     get_issue_comments(
       number   = y,
       repo     = attr(obj,'repo'),
@@ -50,23 +51,49 @@ create_table <- function(obj){
       PAT      = eval(parse(text = attr(obj,'pat')))
       )%>%
       fetch_comment_users()
-  },simplify = TRUE)
+  })
   
-  obj$opened_by <- sapply(obj$value,FUN=function(y) link(y$user$login,y$user$html_url),simplify = TRUE)
+  obj$opened_by <- purrr::map_chr(obj$value,.f=function(y) link(y$user$login,y$user$html_url))
       
-  obj$assigned_to <- sapply(
+  obj$assigned_to <- purrr::map_chr(
     obj$value,
-    FUN=function(y) 
-      paste0(sapply(y$assignees,FUN=function(yy) yy$login),collapse = ','),
-    simplify = TRUE
+    .f=function(y) 
+      paste0(purrr::map_chr(y$assignees,.f=function(yy) yy$login),collapse = ',')
     )
+  
+  obj$merged <- purrr::map2_lgl(
+    obj$pull_request,
+    obj$issue,
+    .f=function(pr,number,repo,endpoint,PAT) {
+      if(pr){
+        get_pr_merge(
+                  number = number,
+                  repo = repo,
+                  endpoint = endpoint,
+                  PAT = PAT
+        )
+      }else{
+        pr
+      } 
+    },
+    repo     = attr(obj,'repo'),
+    endpoint = attr(obj,'endpoint'),
+    PAT      = eval(parse(text = attr(obj,'pat')))
+    )
+  
+  
+  obj$icon <- purrr::pmap_chr(
+    list(state = obj$state,
+         pull_request = obj$pull_request,
+         merged = obj$merged),
+         find_icon)
   
   obj$value <- NULL
   obj$url <- NULL
   
   obj <- obj[order(obj$state,-obj$pull_request,obj$updated,decreasing = TRUE),]
   
-  obj <- obj[,c('issue','pull_request','title','state','labels','opened_by','comments','comments_users','assigned_to','created','updated','closed')]
+  obj <- obj[,c('issue','icon','title','labels','opened_by','comments','comments_users','assigned_to','created','updated','closed')]
   
   obj
 

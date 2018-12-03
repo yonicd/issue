@@ -31,7 +31,7 @@ library(issue)
 
 ```{r example}
 issue::get_issues(repo = 'r-lib/pkgdown',
-           last = 10)%>%
+           last = 20)%>%
   issue::create_table()%>%
   knitr::kable()
 ```

@@ -9,7 +9,7 @@ Authors@R: person(given  = "Jonathan",
 Description: Create a table to display issue status in repo readme.
 Depends: R (>= 3.3.0)
 License: MIT + file LICENSE
-Imports: httr,tibble
+Imports: httr,tibble,purrr
 Suggests: knitr
 Encoding: UTF-8
 LazyData: true
