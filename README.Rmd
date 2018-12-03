@@ -30,8 +30,24 @@ library(issue)
 ```
 
 ```{r example}
-issue::get_issues(repo = 'r-lib/pkgdown',
+x <- issue::get_issues(repo = 'r-lib/pkgdown',
            last = 20)%>%
-  issue::create_table()%>%
+  issue::create_table()
+```
+
+## Current Issues
+
+```{r,results='asis',echo=FALSE}
+x[c(1:5),]%>%
   knitr::kable()
 ```
+
+<details><summary>View More</summary>
+
+```{r,results='asis',echo=FALSE}
+x[-c(1:5),]%>%
+  knitr::kable()
+```
+
+</details>
+<br>
