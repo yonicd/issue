@@ -19,6 +19,7 @@ link <- function(text,anchor,span = NULL){
 clean_span <- function(obj){
   obj <- gsub('\\n(.*?)$','...',obj)
   obj <- gsub('\\r','',obj)
+  obj <- gsub('\\|','\\\\|',obj)
   obj <- gsub('"',"'",obj)
   obj
 }
