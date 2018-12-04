@@ -21,9 +21,15 @@ This package relies heavily on the querying the GitHub API. You can
 create a personal access token (PAT) in `R` with
 [usethis](https://usethis.r-lib.org/reference/browse_github_pat.html).
 
+## Usage
+
+### Load Library
+
 ``` r
 library(issue)
 ```
+
+### Query API
 
 ``` r
 raw_data <- issue::get_issues(
@@ -31,10 +37,18 @@ raw_data <- issue::get_issues(
   last = 20,
   PAT  = Sys.getenv('GITHUB_PAT')
   )
+```
 
+### Transform to a tibble
+
+``` r
 tbl <- raw_data%>%
   issue::issue_tibble()
+```
 
+### Convert to markdown ready tibble
+
+``` r
 x <- tbl%>%
   issue::md_table()
 ```
