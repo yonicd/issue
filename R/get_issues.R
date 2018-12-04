@@ -16,6 +16,7 @@
 #' @export 
 #' @importFrom httr GET add_headers content
 #' @importFrom tibble enframe
+#' @importFrom purrr map_chr
 get_issues <- function(repo, last = 100, endpoint = 'api.github.com', PAT = Sys.getenv('GITHUB_PAT')){
   
   get_git <- sprintf('https://%s/repos/%s/issues?state=all&per_page=%s',endpoint,repo,last)
@@ -26,14 +27,26 @@ get_issues <- function(repo, last = 100, endpoint = 'api.github.com', PAT = Sys.
         Authorization = sprintf('token %s',PAT)
       )
     )%>%
-    httr::content()%>%
+    httr::content()
+  
+  if(!is.null(obj$message)){
+    msg <- obj$message
+    
+    if(msg=="Bad credentials"){
+      msg <- sprintf('%s\nSee {usethis::browse_github_pat} at https://goo.gl/TWfTVy to set up a GitHub PAT',msg)
+    }
+      
+    return(message(msg))
+  }
+  
+  tbl <- obj%>%
     tibble::enframe(name = 'issue')
   
-  obj$issue <- sapply(obj$value,FUN=function(y) y$number,simplify = TRUE)
+  tbl$issue <- purrr::map_chr(tbl$value,.f=function(y) y$number)
   
-  attr(obj,'repo') <- repo
-  attr(obj,'endpoint') <- endpoint
-  attr(obj,'pat') <- deparse(substitute(PAT))
+  attr(tbl,'repo') <- repo
+  attr(tbl,'endpoint') <- endpoint
+  attr(tbl,'pat') <- deparse(substitute(PAT))
   
-  obj
+  tbl
 }

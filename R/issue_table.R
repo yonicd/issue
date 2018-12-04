@@ -9,11 +9,12 @@
 #'  #EXAMPLE1
 #'  }
 #' }
-#' @rdname create_table
-#' @importFrom purrr map_chr pmap_chr map2_lgl map_lgl
+#' @rdname issue_tibble
 #' @export 
-create_table <- function(obj){
-
+#' @importFrom purrr map_chr map_lgl map transpose map2_lgl
+#' @importFrom tibble as_tibble
+issue_tibble <- function(obj){
+  
   obj$state        <- purrr::map_chr(obj$value,.f=function(y) y$state)
   obj$pull_request <- purrr::map_lgl(obj$value,function(y) 'pull_request'%in%names(y))
   obj$body         <- purrr::map_chr(obj$value,.f=function(y) y$body)
@@ -26,40 +27,43 @@ create_table <- function(obj){
   obj$closed       <- as.POSIXct(strptime(obj$closed,'%Y-%m-%dT%H:%M:%SZ'))
   
   obj$title        <- purrr::map_chr(obj$value,.f=function(y) y$title)
-
+  
   obj$url          <- purrr::map_chr(obj$value,.f=function(y) y$html_url)
-
-  obj$title  <- link(obj$title,obj$url,obj$body)
   
   obj$labels <- purrr::map_chr(obj$value,.f=function(y) {
-        
-        ret <- purrr::map_chr(y$labels,.f=function(yy) yy$name)
-        
-        if(length(ret)==0)
-          ret <- ''
-        
-        paste0(ret,collapse = ',')
-      })
+    
+    ret <- purrr::map_chr(y$labels,.f=function(yy) yy$name)
+    
+    if(length(ret)==0)
+      ret <- ''
+    
+    paste0(ret,collapse = ',')
+  })
   
   obj$comments  <- purrr::map_chr(obj$value,.f=function(y) y$comments)
   
-  obj$comments_users <- purrr::map_chr(obj$issue,function(y){
-    get_issue_comments(
+  obj$comments_users <- purrr::map(obj$issue,function(y){
+    
+    ret <- get_issue_comments(
       number   = y,
       repo     = attr(obj,'repo'),
       endpoint = attr(obj,'endpoint'),
       PAT      = eval(parse(text = attr(obj,'pat')))
-      )%>%
-      fetch_comment_users()
+    )
+    
+    ret$value%>%purrr::transpose()%>%tibble::as_tibble() 
+    
   })
   
-  obj$opened_by <- purrr::map_chr(obj$value,.f=function(y) link(y$user$login,y$user$html_url))
-      
+  obj$opened_by <- purrr::map_chr(obj$value,.f=function(y) y$user$login)
+  obj$opened_by_url <- purrr::map_chr(obj$value,.f=function(y) y$user$html_url)
+  
+  
   obj$assigned_to <- purrr::map_chr(
     obj$value,
     .f=function(y) 
       paste0(purrr::map_chr(y$assignees,.f=function(yy) yy$login),collapse = ',')
-    )
+  )
   
   obj$merged <- purrr::map2_lgl(
     obj$pull_request,
@@ -67,10 +71,10 @@ create_table <- function(obj){
     .f=function(pr,number,repo,endpoint,PAT) {
       if(pr){
         get_pr_merge(
-                  number = number,
-                  repo = repo,
-                  endpoint = endpoint,
-                  PAT = PAT
+          number = number,
+          repo = repo,
+          endpoint = endpoint,
+          PAT = PAT
         )
       }else{
         pr
@@ -79,31 +83,23 @@ create_table <- function(obj){
     repo     = attr(obj,'repo'),
     endpoint = attr(obj,'endpoint'),
     PAT      = eval(parse(text = attr(obj,'pat')))
-    )
-  
-  
-  obj$icon <- purrr::pmap_chr(
-    list(state = obj$state,
-         pull_request = obj$pull_request,
-         merged = obj$merged),
-         find_icon)
+  )
   
   obj$value <- NULL
-  obj$url <- NULL
   
   obj <- obj[order(obj$state,-obj$pull_request,obj$updated,decreasing = TRUE),]
-  
-  obj <- obj[,c('issue','icon','title','labels','opened_by','comments','comments_users','assigned_to','created','updated','closed')]
+
+  obj <- obj[,c('issue','state','pull_request','merged','title','url','body','labels','opened_by','opened_by_url','comments','comments_users','assigned_to','created','updated','closed')]
   
   obj
-
 }
 
-fetch_comment_users <- function(obj){
+#' @importFrom purrr map_df
+#' @importFrom tibble tibble
+fetch_comment_list <- function(obj){
   
-  sapply(obj$value,function(y){
-    link(y$user$login,y$html_url,y$body)
-  })%>%
-    paste0(collapse = ', ') 
+  purrr::map_df(obj$value,function(y){
+    tibble::tibble(login = y$user$login,url = y$html_url,body = y$body)
+  })
   
 }

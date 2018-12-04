@@ -25,14 +25,26 @@ You can install issue from github with:
 remotes::install_github("yonicd/issue")
 ```
 
+## Prerequisites
+
+This package relies heavily on the querying the GitHub API. You can create a personal access token (PAT) in `R` with [usethis](https://usethis.r-lib.org/reference/browse_github_pat.html). 
+
 ```{r}
 library(issue)
 ```
 
 ```{r example}
-x <- issue::get_issues(repo = 'r-lib/pkgdown',
-           last = 20)%>%
-  issue::create_table()
+raw_data <- issue::get_issues(
+  repo = 'r-lib/pkgdown',
+  last = 20,
+  PAT  = Sys.getenv('GITHUB_PAT')
+  )
+
+tbl <- raw_data%>%
+  issue::issue_tibble()
+
+x <- tbl%>%
+  issue::md_table()
 ```
 
 ## Current Issues
@@ -51,3 +63,23 @@ x[-c(1:5),]%>%
 
 </details>
 <br>
+
+## For Developers
+
+The `issue_tibble` has all kinds of useful information for developers to interrogate either their own repository or other repositories directly from `R`.
+
+```{r}
+tbl%>%
+  dplyr::glimpse()
+```
+
+```{r}
+tbl$comments_users[[1]]%>%
+  dplyr::glimpse()
+```
+
+```{r}
+tbl$comments_users[[1]]$user[[1]]%>%
+  tibble::as.tibble()%>%
+  dplyr::glimpse()
+```

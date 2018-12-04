@@ -52,7 +52,7 @@ find_icon <- function(state = 'open', pull_request = FALSE, merged = FALSE){
       ret <- 'https://github.com/yonicd/issue/blob/master/inst/icons/issue-opened.png?raw=true'
       span <- '<span title = "Open Issue"><img src="%s"></span>'
     }else{
-      ret <- system.file('icons/issue-closed.svg',package = 'issue')
+      #ret <- system.file('icons/issue-closed.svg',package = 'issue')
       ret <- 'https://github.com/yonicd/issue/blob/master/inst/icons/issue-closed.png?raw=true'
       span <- '<span title = "Closed Issue"><img src="%s"></span>'
     }
